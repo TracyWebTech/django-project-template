@@ -1,15 +1,20 @@
 import os
 import apt
+import locale
 import platform
+import subprocess
 import urllib
 
 from apt import debfile
 from distutils.version import StrictVersion
+from pkg_resources import parse_requirements
+from shutil import copyfile
+from subprocess import check_output
 
 
 PUPPET_TARGET_VERSION="3.4.3-1puppetlabs1"
 PUPPET_DIR = os.path.join(os.path.dirname(__file__))
-MODULES_FILE = os.path.join(PUPPET_DIR, 'modules.txt')
+MODULES_FILE_PATH = os.path.join(PUPPET_DIR, 'modules.txt')
 
 
 def get_package(name):
@@ -59,6 +64,66 @@ def install_puppet(upgrade=False):
     cache.commit()
 
 
+def get_modules_installed():
+    modules_list = check_output(['puppet', 'module', 'list']).split('\n')[1:-1]
+    modules_list = [item.split()[1:] for item in modules_list]
+    modules_dict = {}
+    for name, version in modules_list:
+        modules_dict[name] = version.split('v')[1].replace(
+            '\x1b[0m)',
+            ''
+        )
+    return modules_dict
+
+
+def run(cmd, module, version=''):
+    if version:
+        version = ' --version {}'.format(version)
+
+    cmd = 'puppet module {} {}{}'.format(cmd, module, version)
+    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, executable='/bin/bash')
+
+    output, err = process.communicate()
+    print output
+    print err
+
+
+def install_puppet_modules():
+    modules_installed = get_modules_installed()
+
+    with open(MODULES_FILE_PATH) as modules_file:
+        modules_requirements = modules_file.read().replace('/', '-')
+
+    for module in parse_requirements(modules_requirements):
+
+        current_cmd, compare, version = '', '', ''
+        if module.project_name in modules_installed:
+
+            version_comparison = None
+            if module.specs:
+                compare, version = module.specs[0]
+                version_comparison = apt.VersionCompare(
+                    modules_installed[module.project_name],
+                    version
+                )
+
+            if version_comparison == 0 and compare is not '>':
+                # module version installed is equal version
+                continue
+            else:
+                # module version installed is smaller or bigger than version
+                current_cmd = 'upgrade'
+        else:
+            current_cmd = 'install'
+
+        if version and compare and '>' not in compare:
+            run(current_cmd, module.project_name, version)
+        else:
+            if not version_comparison or version_comparison < 0:
+                run(current_cmd, module.project_name)
+
+
 # If the package not found or if the version is outdated, install puppet
 if not pkg_available('puppet'):
     config_puppetlabs_repo()
@@ -69,3 +134,10 @@ if not pkg.is_installed:
     install_puppet()
 elif apt.VersionCompare(pkg.installed.version, PUPPET_TARGET_VERSION) < 0:
     install_puppet(upgrade=True)
+
+if os.path.isfile('/vagrant/puppet/hiera.yaml'):
+    copyfile('/vagrant/puppet/hiera.yaml', '/etc/puppet/hiera.yaml')
+
+locale.setlocale(locale.LC_ALL, '')
+
+install_puppet_modules()
