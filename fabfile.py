@@ -168,7 +168,7 @@ def provision():
     puppet_modules = '{}:/etc/puppet/modules'.format(modules_path)
 
     with cd(puppet_path):
-        run('sudo ./bootstrap.sh')
+        run('sudo ./bootstrap.py')
 
     if env.is_vagrant:
         cmd = os.path.join(puppet_path, 'manifests', 'site.pp')
