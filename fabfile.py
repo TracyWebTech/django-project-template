@@ -9,7 +9,7 @@ from fabric.contrib.files import exists
 from fabric.operations import prompt, put
 from fabric.context_managers import prefix, cd, settings, shell_env
 
-from .puppet.bootstrap import puppet_bootstrap
+from puppet.bootstrap import puppet_bootstrap
 
 
 ### Start of config
