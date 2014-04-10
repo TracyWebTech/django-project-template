@@ -79,4 +79,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
+STATIC_ROOT = '/usr/share/nginx/{{ project_name }}/static/'
+MEDIA_ROOT = '/usr/share/nginx/{{ project_name }}/media/'
+
 STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
