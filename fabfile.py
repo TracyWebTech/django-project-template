@@ -48,7 +48,7 @@ PROJECT_PATH = os.path.join(os.path.dirname(__file__))
 REPO_PATH = '/home/{}/{}'.format(APP_USER, APP_NAME)
 SOURCE_VENV = 'source /usr/local/bin/virtualenvwrapper.sh'
 WORKON_ENV = '{} && workon {}'.format(SOURCE_VENV, VENV_NAME)
-MANAGE_PATH = os.path.join(REPO_PATH, 'site')
+MANAGE_PATH = os.path.join(REPO_PATH, 'src')
 SETTINGS_PATH = os.path.join(MANAGE_PATH, APP_NAME)
 
 
