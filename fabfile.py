@@ -9,8 +9,6 @@ from fabric.contrib.files import exists
 from fabric.operations import prompt, put
 from fabric.context_managers import prefix, cd, settings, shell_env
 
-from puppet.bootstrap import puppet_bootstrap
-
 
 ### Start of config
 
@@ -169,7 +167,8 @@ def provision():
     modules_path = os.path.join(puppet_path, 'modules')
     puppet_modules = '{}:/etc/puppet/modules'.format(modules_path)
 
-    puppet_bootstrap()
+    with cd(puppet_path):
+        run('sudo python bootstrap.py')
 
     if env.is_vagrant:
         cmd = os.path.join(puppet_path, 'manifests', 'site.pp')

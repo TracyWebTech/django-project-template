@@ -81,12 +81,8 @@ def run(cmd, module, version=''):
         version = ' --version {}'.format(version)
 
     cmd = 'puppet module {} {}{}'.format(cmd, module, version)
-    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, executable='/bin/bash')
-
-    output, err = process.communicate()
-    print output
-    print err
+    process = subprocess.Popen(cmd, shell=True, executable='/bin/bash')
+    process.wait()
 
 
 def install_puppet_modules():
@@ -124,20 +120,19 @@ def install_puppet_modules():
                 run(current_cmd, module.project_name)
 
 
-def puppet_bootstrap():
-    # If the package not found or if the version is outdated, install puppet
-    if not pkg_available('puppet'):
-        config_puppetlabs_repo()
+# If the package not found or if the version is outdated, install puppet
+if not pkg_available('puppet'):
+    config_puppetlabs_repo()
 
-    pkg = get_package('puppet')[0]
-    if not pkg.is_installed:
-        install_puppet()
-    elif apt.VersionCompare(pkg.installed.version, PUPPET_TARGET_VERSION) < 0:
-        install_puppet(upgrade=True)
+pkg = get_package('puppet')[0]
+if not pkg.is_installed:
+    install_puppet()
+elif apt.VersionCompare(pkg.installed.version, PUPPET_TARGET_VERSION) < 0:
+    install_puppet(upgrade=True)
 
-    if os.path.isfile('/vagrant/puppet/hiera.yaml'):
-        copyfile('/vagrant/puppet/hiera.yaml', '/etc/puppet/hiera.yaml')
+if os.path.isfile('/vagrant/puppet/hiera.yaml'):
+    copyfile('/vagrant/puppet/hiera.yaml', '/etc/puppet/hiera.yaml')
 
-    locale.setlocale(locale.LC_ALL, '')
+locale.setlocale(locale.LC_ALL, '')
 
-    install_puppet_modules()
+install_puppet_modules()
