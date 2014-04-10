@@ -102,6 +102,8 @@ def install_puppet_modules():
                     modules_installed[module.project_name],
                     version
                 )
+            else:
+                continue
 
             if version_comparison == 0 and compare is not '>':
                 # module version installed is equal version
