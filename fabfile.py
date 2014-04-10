@@ -4,7 +4,7 @@ import os
 
 from fabric import colors
 from fabric.decorators import task
-from fabric.api import env, run, sudo
+from fabric.api import env, run, sudo, local
 from fabric.contrib.files import exists
 from fabric.operations import prompt, put
 from fabric.context_managers import prefix, cd, settings, shell_env
@@ -44,6 +44,7 @@ DEFAULT_ENVIRONMENT = 'dev'
 env.user = APP_USER
 env.use_shell = False
 
+PROJECT_PATH = os.path.join(os.path.dirname(__file__))
 REPO_PATH = '/home/{}/{}'.format(APP_USER, APP_NAME)
 SOURCE_VENV = 'source /usr/local/bin/virtualenvwrapper.sh'
 WORKON_ENV = '{} && workon {}'.format(SOURCE_VENV, VENV_NAME)
