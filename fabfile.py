@@ -137,7 +137,14 @@ def bootstrap():
         if not exists('/usr/bin/git'):
             aptget_install('git')
 
-        sudo('useradd {} -G sudo -m -s /bin/bash'.format(APP_USER), quiet=True)
+        if env.is_vagrant:
+            groups = 'sudo,vagrant'
+            local('chmod -fR g+w {}'.format(PROJECT_PATH))
+        else:
+            groups = 'sudo'
+
+        sudo('useradd {} -G {} -m -s /bin/bash'.format(APP_USER, groups),
+             quiet=True)
         ssh_dir = '/home/{0}/.ssh/'.format(APP_USER)
         if not exists(ssh_dir):
             sudo('mkdir -p {0}'.format(ssh_dir))
