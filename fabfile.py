@@ -73,6 +73,8 @@ def install_requirements():
 
         if exists('requirements-{}.txt'.format(env.environment)):
             run('pip install -r requirements-{}.txt'.format(env.environment))
+        else:
+            run('pip install -r requirements.txt')
 
 
 def mkvirtualenv():
