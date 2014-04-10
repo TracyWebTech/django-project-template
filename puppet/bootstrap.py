@@ -93,10 +93,9 @@ def install_puppet_modules():
 
     for module in parse_requirements(modules_requirements):
 
-        current_cmd, compare, version = '', '', ''
+        current_cmd, compare, version, version_comparison = '', '', '', None
         if module.project_name in modules_installed:
 
-            version_comparison = None
             if module.specs:
                 compare, version = module.specs[0]
                 version_comparison = apt.VersionCompare(
