@@ -68,9 +68,10 @@ def install_puppet(upgrade=False):
 
 
 def get_modules_installed():
-    modules_list = check_output(['puppet', 'module', 'list']).strip().split('\n')
+    modules_list = check_output(['puppet', 'module', 'list']).split('\n')
     modules_list = [line for line in modules_list if 'no modules' not in line]
     modules_list = [item.split()[1:] for item in modules_list]
+    modules_list = [item for item in modules_list if item]
     modules_dict = {}
     for name, version in modules_list:
         modules_dict[name] = version.split('v')[1].replace(
