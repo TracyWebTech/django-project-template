@@ -2,6 +2,7 @@
 
 import os
 import apt
+import apt_pkg
 import locale
 import platform
 import subprocess
@@ -14,7 +15,7 @@ from shutil import copyfile
 from subprocess import check_output
 
 
-PUPPET_TARGET_VERSION="3.4.3-1puppetlabs1"
+PUPPET_TARGET_VERSION="3.4.3-1"
 PUPPET_DIR = os.path.join(os.path.dirname(__file__))
 MODULES_FILE_PATH = os.path.join(PUPPET_DIR, 'modules.txt')
 
@@ -67,7 +68,8 @@ def install_puppet(upgrade=False):
 
 
 def get_modules_installed():
-    modules_list = check_output(['puppet', 'module', 'list']).split('\n')[1:-1]
+    modules_list = check_output(['puppet', 'module', 'list']).strip().split('\n')
+    modules_list = [line for line in modules_list if 'no modules' not in line]
     modules_list = [item.split()[1:] for item in modules_list]
     modules_dict = {}
     for name, version in modules_list:
@@ -100,7 +102,7 @@ def install_puppet_modules():
 
             if module.specs:
                 compare, version = module.specs[0]
-                version_comparison = apt.VersionCompare(
+                version_comparison = apt_pkg.version_compare(
                     modules_installed[module.project_name],
                     version
                 )
@@ -130,7 +132,7 @@ if not pkg_available('puppet'):
 pkg = get_package('puppet')[0]
 if not pkg.is_installed:
     install_puppet()
-elif apt.VersionCompare(pkg.installed.version, PUPPET_TARGET_VERSION) < 0:
+elif apt_pkg.version_compare(pkg.installed.version, PUPPET_TARGET_VERSION) < 0:
     install_puppet(upgrade=True)
 
 if os.path.isfile('/vagrant/puppet/hiera.yaml'):
