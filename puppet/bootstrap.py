@@ -124,20 +124,25 @@ def install_puppet_modules():
             if not version_comparison or version_comparison < 0:
                 run(current_cmd, module.project_name)
 
+def main():
+    # If the package not found or if the version is outdated, install puppet
+    if not pkg_available('puppet'):
+        config_puppetlabs_repo()
 
-# If the package not found or if the version is outdated, install puppet
-if not pkg_available('puppet'):
-    config_puppetlabs_repo()
+    pkg = get_package('puppet')[0]
+    if not pkg.is_installed:
+        install_puppet()
+    elif apt_pkg.version_compare(pkg.installed.version,
+                                 PUPPET_TARGET_VERSION) < 0:
+        install_puppet(upgrade=True)
 
-pkg = get_package('puppet')[0]
-if not pkg.is_installed:
-    install_puppet()
-elif apt_pkg.version_compare(pkg.installed.version, PUPPET_TARGET_VERSION) < 0:
-    install_puppet(upgrade=True)
+    if os.path.isfile('/vagrant/puppet/hiera.yaml'):
+        copyfile('/vagrant/puppet/hiera.yaml', '/etc/puppet/hiera.yaml')
 
-if os.path.isfile('/vagrant/puppet/hiera.yaml'):
-    copyfile('/vagrant/puppet/hiera.yaml', '/etc/puppet/hiera.yaml')
+    locale.setlocale(locale.LC_ALL, '')
 
-locale.setlocale(locale.LC_ALL, '')
+    install_puppet_modules()
 
-install_puppet_modules()
+
+if __name__ == '__main__':
+    main()
