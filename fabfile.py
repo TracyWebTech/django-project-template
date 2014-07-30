@@ -63,7 +63,7 @@ def get_distro_family():
 
 def cmd(family, command, args=''):
     pkgmanager, commands = DISTRO_CMD[family]
-    return '{} {} {} {}'.format(pkgmanager, command, commands[command], args)
+    return ' '.join([pkgmanager, command, commands[command], args])
 
 
 @task
