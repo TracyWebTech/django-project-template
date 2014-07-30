@@ -9,6 +9,19 @@ from fabric.api import env, run, sudo, local
 from fabric.contrib.files import exists
 from fabric.context_managers import prefix, cd, settings, shell_env
 
+DEBIAN_FAMILY = ['debian', 'ubuntu']
+REDHAT_FAMILY = ['centos', 'fedora']
+
+DISTRO_CMD = {
+    'debian': ('apt-get', {
+        'install': '-y',
+        'update': '-y',
+        }),
+    'redhat': ('yum', {
+        'install': '-y',
+        'update': '-y',
+        })
+}
 
 APP_USER = APP_NAME = VENV_NAME = '{{ project_name }}'
 REPO_URL = 'To be defined'
@@ -36,6 +49,23 @@ MANAGE_PATH = os.path.join(REPO_PATH, 'src')
 SETTINGS_PATH = os.path.join(MANAGE_PATH, APP_NAME)
 
 
+def get_distro_family():
+    cmd = 'python -c "import platform; print platform.dist()[0]"'
+    linux_name = run(cmd).lower()
+    if linux_name in DEBIAN_FAMILY:
+        return 'debian'
+    elif linux_name in REDHAT_FAMILY:
+        return 'redhat'
+    else:
+        error(colors.red('Distribuiton `{}` not supported'.format(linux_name)))
+        exit(1)
+
+
+def cmd(family, command, args=''):
+    pkgmanager, commands = DISTRO_CMD[family]
+    return '{} {} {} {}'.format(pkgmanager, command, commands[command], args)
+
+
 @task
 def environment(name=DEFAULT_ENVIRONMENT):
     """Set the environment where the tasks will be executed"""
@@ -54,11 +84,11 @@ def environment(name=DEFAULT_ENVIRONMENT):
 
     env.update(environments[name])
     env.environment = name
-environment()
 
 
-def aptget_install(pkg):
-    sudo('DEBIAN_FRONTEND=noninteractive apt-get install -y -q {}'.format(pkg))
+def package_install(pkg):
+    family = get_distro_family()
+    sudo(cmd(family, 'install', pkg))
 
 
 def install_requirements():
@@ -133,18 +163,24 @@ def bootstrap():
     """Bootstrap machine to run fabric tasks"""
 
     with settings(user=env.superuser):
+        family = get_distro_family()
+        sudo(cmd(family, 'update'))
 
         if not exists('/usr/bin/git'):
-            aptget_install('git')
+            package_install('git-core')
 
         if env.is_vagrant:
-            groups = 'sudo,vagrant'
+            groups = ['sudo', 'vagrant']
             local('chmod -fR g+w {}'.format(PROJECT_PATH))
         else:
-            groups = 'sudo'
+            groups = ['sudo']
 
-        sudo('useradd {} -G {} -m -s /bin/bash'.format(APP_USER, groups),
-             quiet=True)
+        for group in groups:
+            sudo('groupadd -f {}'.format(group))
+
+        command = 'useradd {} -G {} -m -s /bin/bash'
+        sudo(command.format(APP_USER, ','.join(groups)))
+
         ssh_dir = '/home/{0}/.ssh/'.format(APP_USER)
         if not exists(ssh_dir):
             sudo('mkdir -p {0}'.format(ssh_dir))
@@ -223,3 +259,7 @@ def deploy(noprovision=False):
     migrate()
 
     sudo('supervisorctl start all')
+
+
+# Main
+environment()
