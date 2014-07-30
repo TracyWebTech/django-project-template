@@ -84,6 +84,7 @@ def environment(name=DEFAULT_ENVIRONMENT):
 
     env.update(environments[name])
     env.environment = name
+environment()
 
 
 def package_install(pkg):
@@ -260,6 +261,3 @@ def deploy(noprovision=False):
 
     sudo('supervisorctl start all')
 
-
-# Main
-environment()
