@@ -56,3 +56,7 @@ docs/_build/
 # vim
 *.swp
 *.swo
+
+# SQLite Databases
+*.sqlite
+*.db
