@@ -1,6 +1,5 @@
-Django==1.6.5
-South==0.8.4
-Pillow==2.4.0
-gunicorn==18.0
-eventlet==0.15.0
+Django==1.7
+Pillow==2.5.3
+gunicorn==19.1.1
+eventlet==0.15.2
 #gevent==1.0.1 # eventlet alternative
