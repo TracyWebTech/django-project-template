@@ -10,22 +10,22 @@ include {{ project_name }}
 
 
 ### MySQL example:
-#
-# class { 'mysql::server':
-#   override_options => {
-#     mysqld => {
-#       "default-storage-engine" => 'InnoDB',
-#     },
-#   },
-# }
-#
-# mysql::db { '{{ project_name }}':
-#   user     => '{{ project_name }}',
-#   password => '{{ project_name }}',
-#   host     => 'localhost',
-#   grant    => ['ALL'],
-#   charset  => 'utf8',
-# }
+
+class { 'mysql::server':
+  override_options => {
+    mysqld => {
+      "default-storage-engine" => 'InnoDB',
+    },
+  },
+}
+
+mysql::db { '{{ project_name }}':
+  user     => '{{ project_name }}',
+  password => '{{ project_name }}',
+  host     => 'localhost',
+  grant    => ['ALL'],
+  charset  => 'utf8',
+}
 
 
 ### PostgreSQL example:
