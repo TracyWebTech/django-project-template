@@ -1,4 +1,7 @@
+
 class {{ project_name }} {
+
+  include appdeploy::deps::mysql
 
   appdeploy::django { '{{ project_name }}':
     user        => '{{ project_name }}',
