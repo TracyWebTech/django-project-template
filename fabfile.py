@@ -2,11 +2,13 @@
 
 import os
 
+from contextlib import contextmanager
+
 from fabric import colors
 from fabric.utils import error
 from fabric.decorators import task
 from fabric.api import env, run, sudo, local
-from fabric.contrib.files import exists
+from fabric.contrib.files import exists, first
 from fabric.context_managers import prefix, cd, settings, shell_env
 
 DEBIAN_FAMILY = ['debian', 'ubuntu']
@@ -41,12 +43,8 @@ DEFAULT_ENVIRONMENT = 'dev'
 env.user = APP_USER
 env.use_shell = False
 
-PROJECT_PATH = os.path.join(os.path.dirname(__file__))
-REPO_PATH = '/home/{}/{}'.format(APP_USER, APP_NAME)
-SOURCE_VENV = 'source /usr/local/bin/virtualenvwrapper.sh'
-WORKON_ENV = '{} && workon {}'.format(SOURCE_VENV, VENV_NAME)
-MANAGE_PATH = os.path.join(REPO_PATH, 'src')
-SETTINGS_PATH = os.path.join(MANAGE_PATH, APP_NAME)
+PROJECT_PATH = os.path.join(os.path.dirname(__file__)) # on local machine
+REPO_PATH = '/home/{}/{}'.format(APP_USER, APP_NAME)   # on remote machine
 
 
 def get_distro_family():
@@ -87,13 +85,35 @@ def environment(name=DEFAULT_ENVIRONMENT):
 environment()
 
 
+@contextmanager
+def virtualenvwrapper():
+    path = first(
+        '/usr/local/bin/virtualenvwrapper.sh',
+        '/usr/bin/virtualenvwrapper.sh',
+    )
+
+    if not path:
+        raise Exception('virtualenvwrapper not found')
+
+    source_venv = 'source {}'.format(path)
+    with prefix(source_venv):
+        yield
+
+
+@contextmanager
+def workon():
+    workon_env = 'workon {}'.format(VENV_NAME)
+    with virtualenvwrapper(), prefix(workon_env):
+        yield
+
+
 def package_install(pkg):
     family = get_distro_family()
     sudo(cmd(family, 'install', pkg))
 
 
 def install_requirements():
-    with cd(REPO_PATH), prefix(WORKON_ENV):
+    with cd(REPO_PATH), workon():
         run('pip install -U distribute')
         if not env.is_vagrant:
             run('pip install -r requirements.txt')
@@ -107,17 +127,18 @@ def install_requirements():
 
 def mkvirtualenv():
     if not exists('~/.virtualenvs/' + VENV_NAME):
-        with prefix(SOURCE_VENV):
+        with virtualenvwrapper():
             run('mkvirtualenv ' + VENV_NAME)
             return True
 
 
 def manage(command):
-    default_settings = '{{ project_name }}.settings.{0}'.format(env.environment)
+    default_settings = '{}.settings.{}'.format(APP_NAME, env.environment)
     django_settings = env.get('django_settings', default_settings)
+    manage_path = os.path.join(REPO_PATH, 'src')
 
     with shell_env(DJANGO_SETTINGS_MODULE=django_settings):
-        with cd(MANAGE_PATH), prefix(WORKON_ENV):
+        with cd(manage_path), workon():
             run('python manage.py {}'.format(command))
 
 
