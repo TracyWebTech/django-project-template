@@ -113,18 +113,12 @@ def mkvirtualenv():
 
 
 def manage(command):
-    django_settings = env.get('django_settings')
-    env_vars = {}
-    if django_settings:
-        env_vars.update({'DJANGO_SETTINGS_MODULE': django_settings})
+    default_settings = '{{ project_name }}.settings.{0}'.format(env.environment)
+    django_settings = env.get('django_settings', default_settings)
 
-    with shell_env(**env_vars):
+    with shell_env(DJANGO_SETTINGS_MODULE=django_settings):
         with cd(MANAGE_PATH), prefix(WORKON_ENV):
             run('python manage.py {}'.format(command))
-
-
-def syncdb():
-    manage('syncdb')
 
 
 def migrate():
@@ -135,15 +129,6 @@ def collectstatic():
     sudo('mkdir -p /usr/share/nginx/{}'.format(APP_NAME))
     sudo('chown {} /usr/share/nginx/{}'.format(env.user, APP_NAME))
     manage('collectstatic --noinput')
-
-
-def create_local_settings():
-    with cd(SETTINGS_PATH), settings(user=env.superuser):
-        env_local_settings = 'local_settings-{}.py'.format(env.environment)
-
-        if not exists('local_settings.py') and exists(env_local_settings):
-            run('ln -s {} {}'.format(env_local_settings, 'local_settings.py'))
-            run('chown {} local_settings.py'.format(env.user))
 
 
 def update_code():
@@ -254,9 +239,7 @@ def deploy(noprovision=False):
     sudo('supervisorctl stop all')
 
     install_requirements()
-    create_local_settings()
     collectstatic()
-    syncdb()
     migrate()
 
     sudo('supervisorctl start all')
