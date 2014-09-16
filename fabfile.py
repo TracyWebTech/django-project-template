@@ -85,7 +85,7 @@ def manage(command):
     default_settings = '{{ project_name }}.settings.{0}'.format(env.environment)
     django_settings = env.get('django_settings', default_settings)
 
-    with shell_env(DJANGO_SETTINGS_MODULE=django_settings)
+    with shell_env(DJANGO_SETTINGS_MODULE=django_settings):
         with cd(MANAGE_PATH), prefix(WORKON_ENV):
             run('python manage.py {}'.format(command))
 
