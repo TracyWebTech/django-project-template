@@ -17,7 +17,7 @@ REPO_URL = 'To be defined'
 environments = {
     'dev': {
         'hosts': ['127.0.0.1'],
-        'key_filename': '~/.vagrant.d/insecure_private_key',
+        'key_filename': '.vagrant/machines/default/virtualbox/private_key',
         'port': 2222,
         'is_vagrant': True,
         'superuser': 'vagrant',
