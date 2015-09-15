@@ -54,6 +54,11 @@ def environment(name=DEFAULT_ENVIRONMENT):
 
     env.update(environments[name])
     env.environment = name
+
+    vagrant_ssh_config = 'vagrant ssh-config | grep {} | sed \'s/\ *\w*\ //\''
+    port = local(vagrant_ssh_config.format('Port'), capture=True)
+    env.port = port
+
 environment()
 
 
