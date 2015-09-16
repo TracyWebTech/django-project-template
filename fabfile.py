@@ -17,7 +17,9 @@ REPO_URL = 'To be defined'
 
 environments = {
     'dev': {
+        'host': ['127.0.0.1'],
         'key_filename': '.vagrant/machines/default/virtualbox/private_key',
+        'port': 2222,
         'is_vagrant': True,
         'superuser': 'vagrant',
     },
@@ -55,10 +57,11 @@ def environment(name=DEFAULT_ENVIRONMENT):
     env.update(environments[name])
     env.environment = name
 
-    ssh_config_stdout = local('vagrant ssh-config', capture=True)
-    hostname, port = re.findall(RE_VM_HOSTNAME_PORT, ssh_config_stdout)[0]
-    env.port = port
-    env.hosts = [hostname]
+    if env.is_vagrant:
+        ssh_config_stdout = local('vagrant ssh-config', capture=True)
+        hostname, port = re.findall(RE_VM_HOSTNAME_PORT, ssh_config_stdout)[0]
+        env.port = port
+        env.hosts = [hostname]
 
 environment()
 
