@@ -58,6 +58,7 @@ def environment(name=DEFAULT_ENVIRONMENT):
     ssh_config_stdout = local('vagrant ssh-config', capture=True)
     hostname, port = re.findall(RE_VM_HOSTNAME_PORT, ssh_config_stdout)[0]
     env.port = port
+    env.host = [hostname]
 
 environment()
 
