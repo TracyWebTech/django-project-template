@@ -1,8 +1,8 @@
-
 from .base import *
 
 
 SECRET_KEY = 'NOT A SECRET'
+
 
 DATABASES = {
     'default': {
@@ -13,6 +13,12 @@ DATABASES = {
         'PASSWORD': '{{ project_name }}',
     }
 }
+
+
+# Set template debug true
+for template in TEMPLATES:
+    template['OPTIONS']['debug'] = True
+
 
 # django-devserver: http://github.com/dcramer/django-devserver
 try:
@@ -29,7 +35,7 @@ else:
 
 
 # django-debug-toolbar
-#   https://github.com/django-debug-toolbar/django-debug-toolbar 
+#   https://github.com/django-debug-toolbar/django-debug-toolbar
 try:
     import debug_toolbar
 except ImportError:

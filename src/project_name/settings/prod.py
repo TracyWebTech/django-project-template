@@ -6,7 +6,6 @@ ALLOWED_HOSTS = (
 )
 
 DEBUG = False
-TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     ('Tracy SysAdmin', 'sysadmin@tracy.com.br'),
