@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import os
+import re
 
 from fabric import colors
 from fabric.utils import error
@@ -16,8 +17,8 @@ REPO_URL = 'To be defined'
 
 environments = {
     'dev': {
-        'hosts': ['127.0.0.1'],
-        'key_filename': '~/.vagrant.d/insecure_private_key',
+        'host': ['127.0.0.1'],
+        'key_filename': '.vagrant/machines/default/virtualbox/private_key',
         'port': 2222,
         'is_vagrant': True,
         'superuser': 'vagrant',
@@ -34,6 +35,7 @@ SOURCE_VENV = 'source /usr/local/bin/virtualenvwrapper.sh'
 WORKON_ENV = '{} && workon {}'.format(SOURCE_VENV, VENV_NAME)
 MANAGE_PATH = os.path.join(REPO_PATH, 'src')
 SETTINGS_PATH = os.path.join(MANAGE_PATH, APP_NAME)
+RE_VM_HOSTNAME_PORT = 'HostName (\d+[.\d]+)[\s\w]*Port (\d+)'
 
 
 @task
@@ -54,6 +56,13 @@ def environment(name=DEFAULT_ENVIRONMENT):
 
     env.update(environments[name])
     env.environment = name
+
+    if env.is_vagrant:
+        ssh_config_stdout = local('vagrant ssh-config', capture=True)
+        hostname, port = re.findall(RE_VM_HOSTNAME_PORT, ssh_config_stdout)[0]
+        env.port = port
+        env.hosts = [hostname]
+
 environment()
 
 
