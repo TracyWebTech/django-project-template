@@ -161,6 +161,10 @@ def provision(branch='master'):
     modules_path = os.path.join(puppet_path, 'modules')
     puppet_modules = '{}:/etc/puppet/modules'.format(modules_path)
 
+    if not exists('/usr/bin/puppet'):
+        print(colors.red('Please install `puppet` before continue.'))
+        return
+
     with cd(puppet_path):
         run('sudo python bootstrap.py')
 
@@ -168,10 +172,6 @@ def provision(branch='master'):
         cmd = os.path.join(puppet_path, 'manifests', 'site.pp')
     else:
         cmd = '-e "include {}"'.format(APP_NAME)
-
-    if not exists('/usr/bin/puppet'):
-        print(colors.red('Please install `puppet` before continue.'))
-        return
 
     sudo('puppet apply --modulepath={} {}'.format(puppet_modules, cmd))
 
