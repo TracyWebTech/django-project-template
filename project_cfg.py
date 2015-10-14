@@ -1,17 +1,15 @@
 
-repository_url =  'TO BE DEFINED'
+defaults = {
+    'repository': 'TO BE DEFINED',
+    'superuser': 'root',
+}
 
 environments = {
     'dev': {
         'hosts': ['default'],
         'is_vagrant': True,
     },
-    'qa': {
-        'hosts': [],
-        'superuser': 'root',
-    },
     'prod': {
         'hosts': [],
-        'superuser': 'root',
     },
 }

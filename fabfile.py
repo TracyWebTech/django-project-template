@@ -12,10 +12,7 @@ from fabric.context_managers import prefix, cd, settings, shell_env
 
 
 APP_USER = APP_NAME = VENV_NAME = '{{ project_name }}'
-REPO_URL = 'To be defined'
 
-
-DEFAULT_ENVIRONMENT = 'dev'
 
 env.user = APP_USER
 env.use_shell = False
@@ -29,7 +26,6 @@ MANAGE_PATH = os.path.join(REPO_PATH, 'src')
 
 def environment():
     """Set the environment where the tasks will be executed"""
-    global REPO_URL
 
     name = os.environ.setdefault('PROJECT_ENV', 'dev')
 
@@ -38,11 +34,12 @@ def environment():
     except ImportError:
         print('The project_cfg file is required but could not be imported.')
         sys.exit(1)
-    else:
-        REPO_URL = project_cfg.repository_url
 
     if name not in project_cfg.environments:
         error(colors.red('Environment `{}` does not exist.'.format(name)))
+
+    if hasattr(project_cfg, 'defaults'):
+        env.update(project_cfg.defaults)
 
     env.update(project_cfg.environments[name])
     env.environment = name
@@ -109,7 +106,7 @@ def update_code():
         return
 
     if not exists(REPO_PATH):
-        run('git clone {} {}'.format(REPO_URL, REPO_PATH))
+        run('git clone {} {}'.format(env.repository, REPO_PATH))
     else:
         with cd(REPO_PATH):
             run('git pull')
