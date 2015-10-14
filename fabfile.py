@@ -13,7 +13,6 @@ from fabric.context_managers import prefix, cd, settings, shell_env
 
 APP_USER = APP_NAME = VENV_NAME = '{{ project_name }}'
 
-
 env.user = APP_USER
 env.use_shell = False
 
@@ -99,16 +98,18 @@ def collectstatic():
     manage('collectstatic --noinput')
 
 
-def update_code():
+def update_code(branch):
     if env.is_vagrant:
         if not exists(REPO_PATH):
             run('ln -s /vagrant/ {}'.format(REPO_PATH))
         return
 
     if not exists(REPO_PATH):
-        run('git clone {} {}'.format(env.repository, REPO_PATH))
+        run('git clone -b {} {} {}'.format(branch, env.repository, REPO_PATH))
     else:
         with cd(REPO_PATH):
+            run('git fetch')
+            run('git checkout {}'.format(branch))
             run('git pull')
 
 
@@ -151,10 +152,10 @@ def bootstrap():
 
 
 @task
-def provision():
+def provision(branch='master'):
     """Run puppet"""
 
-    update_code()
+    update_code(branch)
 
     puppet_path = os.path.join(REPO_PATH, 'puppet/')
     modules_path = os.path.join(puppet_path, 'modules')
@@ -190,13 +191,13 @@ def ssh_keygen():
 
 
 @task
-def deploy(noprovision=False):
-    """Deploy and run the new code (master branch)"""
+def deploy(noprovision=False, branch='master'):
+    """Deploy and run the new code"""
 
     if noprovision is False:
-        provision()
+        provision(branch)
     else:
-        update_code()
+        update_code(branch)
 
     mkvirtualenv()
 
