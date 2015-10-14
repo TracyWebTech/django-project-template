@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import os
+import sys
 
 from fabric import colors
 from fabric.utils import error
@@ -26,15 +27,17 @@ WORKON_ENV = '{} && workon {}'.format(SOURCE_VENV, VENV_NAME)
 MANAGE_PATH = os.path.join(REPO_PATH, 'src')
 
 
-@task
-def environment(name=DEFAULT_ENVIRONMENT):
+def environment():
     """Set the environment where the tasks will be executed"""
     global REPO_URL
+
+    name = os.environ.setdefault('PROJECT_ENV', 'dev')
 
     try:
         import project_cfg
     except ImportError:
-        pass
+        print('The project_cfg file is required but could not be imported.')
+        sys.exit(1)
     else:
         REPO_URL = project_cfg.repository_url
 
@@ -50,6 +53,8 @@ def environment(name=DEFAULT_ENVIRONMENT):
         env.use_ssh_config = True
         env.disable_known_hosts = True
         local('vagrant ssh-config > .ssh_config')
+    else:
+        env.is_vagrant = False
 
 environment()
 
