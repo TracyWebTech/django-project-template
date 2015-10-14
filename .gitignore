@@ -60,3 +60,6 @@ docs/_build/
 # SQLite Databases
 *.sqlite
 *.db
+
+# Fabric
+.ssh_config

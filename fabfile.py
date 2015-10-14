@@ -1,7 +1,6 @@
 # coding: utf-8
 
 import os
-import re
 
 from fabric import colors
 from fabric.utils import error
@@ -15,15 +14,6 @@ APP_USER = APP_NAME = VENV_NAME = '{{ project_name }}'
 REPO_URL = 'To be defined'
 
 
-environments = {
-    'dev': {
-        'host': ['127.0.0.1'],
-        'key_filename': '.vagrant/machines/default/virtualbox/private_key',
-        'port': 2222,
-        'is_vagrant': True,
-        'superuser': 'vagrant',
-    },
-}
 DEFAULT_ENVIRONMENT = 'dev'
 
 env.user = APP_USER
@@ -34,8 +24,6 @@ REPO_PATH = '/home/{}/{}'.format(APP_USER, APP_NAME)
 SOURCE_VENV = 'source /usr/local/bin/virtualenvwrapper.sh'
 WORKON_ENV = '{} && workon {}'.format(SOURCE_VENV, VENV_NAME)
 MANAGE_PATH = os.path.join(REPO_PATH, 'src')
-SETTINGS_PATH = os.path.join(MANAGE_PATH, APP_NAME)
-RE_VM_HOSTNAME_PORT = 'HostName (\d+[.\d]+)[\s\w]*Port (\d+)'
 
 
 @task
@@ -49,19 +37,19 @@ def environment(name=DEFAULT_ENVIRONMENT):
         pass
     else:
         REPO_URL = project_cfg.repository_url
-        environments.update(project_cfg.environments)
 
-    if name not in environments:
+    if name not in project_cfg.environments:
         error(colors.red('Environment `{}` does not exist.'.format(name)))
 
-    env.update(environments[name])
+    env.update(project_cfg.environments[name])
     env.environment = name
 
-    if env.is_vagrant:
-        ssh_config_stdout = local('vagrant ssh-config', capture=True)
-        hostname, port = re.findall(RE_VM_HOSTNAME_PORT, ssh_config_stdout)[0]
-        env.port = port
-        env.hosts = [hostname]
+    if env.get('is_vagrant'):
+        env.superuser = 'vagrant'
+        env.ssh_config_path = '.ssh_config'
+        env.use_ssh_config = True
+        env.disable_known_hosts = True
+        local('vagrant ssh-config > .ssh_config')
 
 environment()
 
@@ -156,6 +144,8 @@ def bootstrap():
             sudo('chown root:root {}'.format(tmp_file))
             sudo('chmod 440 {}'.format(tmp_file))
             sudo('mv {} {}'.format(tmp_file, sudoers_file))
+
+        sudo('apt-get update --fix-missing')
 
 
 @task

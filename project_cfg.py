@@ -2,16 +2,16 @@
 repository_url =  'TO BE DEFINED'
 
 environments = {
+    'dev': {
+        'hosts': ['default'],
+        'is_vagrant': True,
+    },
     'qa': {
-      'hosts': [],
-      'port': 22,
-      'is_vagrant': False,
-      'superuser': 'root',
+        'hosts': [],
+        'superuser': 'root',
     },
     'prod': {
         'hosts': [],
-        'port': 22,
-        'is_vagrant': False,
         'superuser': 'root',
     },
 }
