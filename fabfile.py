@@ -16,7 +16,7 @@ APP_USER = APP_NAME = VENV_NAME = '{{ project_name }}'
 env.user = APP_USER
 env.use_shell = False
 
-PROJECT_PATH = os.path.join(os.path.dirname(__file__))
+PROJECT_PATH = os.path.dirname(__file__)
 REPO_PATH = '/home/{}/{}'.format(APP_USER, APP_NAME)
 SOURCE_VENV = 'source /usr/local/bin/virtualenvwrapper.sh'
 WORKON_ENV = '{} && workon {}'.format(SOURCE_VENV, VENV_NAME)
@@ -140,8 +140,8 @@ def bootstrap():
             ))
             sudo('chown -fR {0}:{0} {1}'.format(APP_USER, ssh_dir))
 
-        sudoers_file = os.path.join('/etc/sudoers.d/', APP_USER)
-        tmp_file = os.path.join('/tmp', APP_USER)
+        sudoers_file = '/etc/sudoers.d/{}'.format(APP_USER)
+        tmp_file = '/tmp/{}'.format(APP_USER)
         if not exists(sudoers_file):
             sudo('echo "{} ALL=NOPASSWD: ALL" > {}'.format(APP_USER, tmp_file))
             sudo('chown root:root {}'.format(tmp_file))
@@ -157,8 +157,8 @@ def provision(branch='master'):
 
     update_code(branch)
 
-    puppet_path = os.path.join(REPO_PATH, 'puppet/')
-    modules_path = os.path.join(puppet_path, 'modules')
+    puppet_path = '{}/puppet/'.format(REPO_PATH)
+    modules_path = '{}/modules'.format(puppet_path)
     puppet_modules = '{}:/etc/puppet/modules'.format(modules_path)
 
     if not exists('/usr/bin/puppet'):
@@ -169,7 +169,7 @@ def provision(branch='master'):
         run('sudo python bootstrap.py')
 
     if env.is_vagrant:
-        cmd = os.path.join(puppet_path, 'manifests', 'site.pp')
+        cmd = '{}/manifests/site.pp'.format(puppet_path)
     else:
         cmd = '-e "include {}"'.format(APP_NAME)
 
